@@ -1,5 +1,5 @@
 'use script'
-
+//
 const countryName = document.querySelector('.input__country');
 const okBtn = document.querySelector('.btn');
 const container = document.querySelector('.countries');
