@@ -1,10 +1,48 @@
-'use script'
-//
+'use strict'
+
 const countryName = document.querySelector('.input__country');
 const okBtn = document.querySelector('.btn');
 const container = document.querySelector('.countries');
+  
+// function: To render country on the page. 
+const renderCountry = function(data, neighbour = ''){
+    const flag = data.flags.svg;
+    const countryName = data.name.common;
+    const regionName = data.region;
+    const population = (data.population / 10000).toFixed(2);
+    const language = extractLanguages(data.languages);
+    const currency = extractCurrency(data.currencies);
 
-// function: for making requsts to get required data from API.
+    const html = `
+    <article class="country ${neighbour}">
+        <img class="country__img" src="${flag}" />
+        <div class="country__data">
+            <h3 class="country__name">${countryName}</h3>
+            <h4 class="country__region">${regionName}</h4>
+            <p class="country__row"><span>👫</span>${population}m people</p>
+            <p class="country__row"><span>🗣️</span>${language}</p>
+            <p class="country__row"><span>💰</span>${currency}</p>
+        </div>
+    </article>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', html);
+    container.style.opacity = '1';
+}
+
+// function: for extracting languages from API provided data.
+const extractLanguages = function(languages){
+    const language = Object.values(languages).join(', ');
+    return language;
+}
+
+// function: for extracting currency from API provided data.
+const extractCurrency = function(currencies){
+    const [currency] = Object.values(currencies);
+    return currency.name;
+}
+
+// / FIRST WAY OF MAKING AN AJAX CALL. (without promises)
 const makeRequest = function(e){
     e.preventDefault();
     
@@ -48,44 +86,48 @@ const makeRequest = function(e){
     }, 2000);
 }
 
-    
-// function: To render country on the page. 
-const renderCountry = function(data, neighbour = ''){
-    const flag = data.flags.svg;
-    const countryName = data.name.common;
-    const regionName = data.region;
-    const population = (data.population / 10000).toFixed(2);
-    const language = extractLanguages(data.languages);
-    const currency = extractCurrency(data.currencies);
+// fixme: okBtn.addEventListener('click', makeRequest);
 
-    const html = `
-    <article class="country ${neighbour}">
-        <img class="country__img" src="${flag}" />
-        <div class="country__data">
-            <h3 class="country__name">${countryName}</h3>
-            <h4 class="country__region">${regionName}</h4>
-            <p class="country__row"><span>👫</span>${population}m people</p>
-            <p class="country__row"><span>🗣️</span>${language}</p>
-            <p class="country__row"><span>💰</span>${currency}</p>
-        </div>
-    </article>
-    `;
-    
-    container.insertAdjacentHTML('beforeend', html);
-    container.style.opacity = '1';
-}
 
-// function: for extracting languages from API provided data.
-const extractLanguages = function(languages){
-    const language = Object.values(languages).join(', ');
-    return language;
-}
+// / Another way of DOING The SAME. (WITH PROMISES) 
+const makeRequest2 = function(e){
+    e.preventDefault();
 
-// function: for extracting currency from API provided data.
-const extractCurrency = function(currencies){
-    const [currency] = Object.values(currencies);
-    return currency.name;
+    const country = countryName.value;
+
+    countryName.value = '';
+
+    if(container.children.length != 0) {
+        container.style.opacity = '0';
+        container.innerHTML = '';
+    }
+
+    setTimeout(() => {
+        if(!country) return;
+
+        const req = fetch(`https://restcountries.com/v3.1/name/${country}`)
+        .then((response) => response.json())
+        .then((d) => {
+            const [data] = d;
+
+            // Country 1 (main)
+            renderCountry(data);
+
+            const neighbour = data.borders[0];
+
+            if(!neighbour) return;
+
+            return fetch(`https://restcountries.com/v3.1/alpha/${neighbour}`);
+        })
+        .then((response) => response.json())
+        .then((d) => {
+            const [data] = d;
+            
+            // Country 2 (neighbour).
+            renderCountry(data);
+        })
+    }, 2000);
 }
 
 // Event Handler. 
-okBtn.addEventListener('click', makeRequest);
+okBtn.addEventListener('click', makeRequest2);
