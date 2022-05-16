@@ -27,7 +27,7 @@ const renderCountry = function(data, neighbour = ''){
     `;
     
     container.insertAdjacentHTML('beforeend', html);
-    container.style.opacity = '1';
+    // container.style.opacity = 1;
 }
 
 // function: for extracting languages from API provided data.
@@ -42,6 +42,29 @@ const extractCurrency = function(currencies){
     return currency.name;
 }
 
+///////////////////////////////////////////////////////////////////////
+
+// function: to fetch data and retrieve json.. 
+const getJSON = function(url, errorMsg = 'Something went wrong,') {
+    return fetch(url)
+    .then((response) => {
+        console.log(response);
+
+        if(!response.ok){
+            throw new Error(`${errorMsg} (${response.status})!`);
+        }
+
+        return response.json();
+    })
+}
+
+// function: for rendering the error msg on screen. 
+const renderError = function(msg){
+    container.insertAdjacentHTML('beforeend', `<p>${msg}</p>`);
+    // container.style.opacity = 1;
+}
+
+/*
 // / FIRST WAY OF MAKING AN AJAX CALL. (without promises)
 const makeRequest = function(e){
     e.preventDefault();
@@ -85,10 +108,11 @@ const makeRequest = function(e){
         });
     }, 2000);
 }
+*?
 
 // fixme: okBtn.addEventListener('click', makeRequest);
 
-
+/*
 // / Another way of DOING The SAME. (WITH PROMISES) 
 const makeRequest2 = function(e){
     e.preventDefault();
@@ -126,8 +150,62 @@ const makeRequest2 = function(e){
             // Country 2 (neighbour).
             renderCountry(data);
         })
+        // catch fn is for handling a rejected ajax call.
+        .catch(err => {
+            console.error(err);
+            renderError(`Something went wrong. ${err}, TRY AGAIN!`)
+        })
+        .finally(() => {
+            container.style.opacity = 1;
+        })
     }, 2000);
 }
+*/
+
+// / Another way of DOING The SAME. (WITH PROMISES) 
+const makeRequest2 = function(e){
+    e.preventDefault();
+
+    const country = countryName.value;
+
+    countryName.value = '';
+
+    if(container.children.length != 0) {
+        container.style.opacity = '0';
+        container.innerHTML = '';
+    }
+
+    setTimeout(() => {
+        getJSON(`https://restcountries.com/v3.1/name/${country}`, 'Country not found')
+        .then(d => {
+            const [data] = d;
+
+            // Country 1 (main)
+            renderCountry(data);
+
+            const neighbour = data.borders;
+
+            if(!neighbour) throw new Error(`Neighbour not found`);
+
+            return getJSON(`https://restcountries.com/v3.1/alpha/${neighbour[0]}`, 'Country not found');
+        })
+        .then((d) => {
+            const [data] = d;
+            
+            // Country 2 (neighbour).
+            renderCountry(data);
+        })
+        // catch fn is for handling a rejected ajax call.
+        .catch(err => {
+            console.error(err);
+            renderError(`${err.message} TRY AGAIN!`)
+        })
+        .finally(() => {
+            container.style.opacity = 1;
+        })
+    }, 2000);
+}
+countryName.focus();
 
 // Event Handler. 
 okBtn.addEventListener('click', makeRequest2);
