@@ -1,5 +1,5 @@
 'use strict'
-
+//
 const countryName = document.querySelector('.input__country');
 const okBtn = document.querySelector('.btn');
 const container = document.querySelector('.countries');
@@ -90,10 +90,14 @@ const makeRequest = function(e){
             const [data] = JSON.parse(this.responseText);
             // Rendering country (main)
             renderCountry(data);
+            console.log(data);
             
+            container.style.opacity = 1;
+
+            if(!data.borders) return;
+
             const neighbour = data.borders[0];
 
-            if(!neighbour) return;
 
             // Request for Neighbour country.
             const request = new XMLHttpRequest();
@@ -105,10 +109,12 @@ const makeRequest = function(e){
                 // Rendering country (neighbour)
                 renderCountry(data, 'neighbour');
             })
+
         });
     }, 2000);
 }
-*?
+*/
+
 
 // fixme: okBtn.addEventListener('click', makeRequest);
 
@@ -193,7 +199,7 @@ const makeRequest2 = function(e){
             const [data] = d;
             
             // Country 2 (neighbour).
-            renderCountry(data);
+            renderCountry(data, 'neighbour');
         })
         // catch fn is for handling a rejected ajax call.
         .catch(err => {
