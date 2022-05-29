@@ -1,5 +1,5 @@
 'use strict'
-//
+
 const countryName = document.querySelector('.input__country');
 const okBtn = document.querySelector('.btn');
 const container = document.querySelector('.countries');
@@ -9,7 +9,7 @@ const renderCountry = function(data, neighbour = ''){
     const flag = data.flags.svg;
     const countryName = data.name.common;
     const regionName = data.region;
-    const population = (data.population / 10000).toFixed(2);
+    const population = (data.population / 1000000).toFixed(2);
     const language = extractLanguages(data.languages);
     const currency = extractCurrency(data.currencies);
 
@@ -48,7 +48,6 @@ const extractCurrency = function(currencies){
 const getJSON = function(url, errorMsg = 'Something went wrong,') {
     return fetch(url)
     .then((response) => {
-        console.log(response);
 
         if(!response.ok){
             throw new Error(`${errorMsg} (${response.status})!`);
